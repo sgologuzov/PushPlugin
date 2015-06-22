@@ -5,6 +5,9 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.plugin.gms.gcm.logic.InstanceIdHelper;
+import com.plugin.gms.gcm.logic.PubSubHelper;
+
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
@@ -24,6 +27,7 @@ public class PushPlugin extends CordovaPlugin {
 
 	public static final String REGISTER = "register";
 	public static final String UNREGISTER = "unregister";
+	public static final String SUBSCRIBE = "subscribe";
 	public static final String EXIT = "exit";
 
 	private static CordovaWebView gWebView;
@@ -42,17 +46,16 @@ public class PushPlugin extends CordovaPlugin {
 
 	@Override
 	public boolean execute(String action, JSONArray data, CallbackContext callbackContext) {
-
 		boolean result = false;
+		try {
+			Log.v(TAG, "execute: action=" + action);
+			InstanceIdHelper instanceIdHelper = new InstanceIdHelper(getApplicationContext());
+			PubSubHelper pubSubHelper = new PubSubHelper(getApplicationContext());
 
-		Log.v(TAG, "execute: action=" + action);
-		InstanceIdHelper instanceIdHelper = new InstanceIdHelper(getApplicationContext());
+			if (REGISTER.equals(action)) {
 
-		if (REGISTER.equals(action)) {
+				Log.v(TAG, "execute: data=" + data.toString());
 
-			Log.v(TAG, "execute: data=" + data.toString());
-
-			try {
 				JSONObject jo = data.getJSONObject(0);
 
 				gWebView = this.webView;
@@ -65,29 +68,36 @@ public class PushPlugin extends CordovaPlugin {
 				instanceIdHelper.getGcmTokenInBackground(gSenderID);
 				result = true;
 				callbackContext.success();
-			} catch (JSONException e) {
-				Log.e(TAG, "execute: Got JSON Exception " + e.getMessage());
+
+				if ( gCachedExtras != null) {
+					Log.v(TAG, "sending cached extras");
+					sendExtras(gCachedExtras);
+					gCachedExtras = null;
+				}
+
+			} else if (UNREGISTER.equals(action)) {
+				instanceIdHelper.deleteGcmTokeInBackground(gSenderID);
+				Log.v(TAG, "UNREGISTER");
+				result = true;
+				callbackContext.success();
+			} else if (SUBSCRIBE.equals(action)) {
+				String gcmToken = data.getString(0);
+				String topic = data.getString(1);
+				pubSubHelper.subscribeTopic(gSenderID, gcmToken, topic, null);
+				instanceIdHelper.deleteGcmTokeInBackground(gSenderID);
+				Log.v(TAG, "SUBSCRIBE");
+				result = true;
+				callbackContext.success();
+			} else {
 				result = false;
-				callbackContext.error(e.getMessage());
+				Log.e(TAG, "Invalid action : " + action);
+				callbackContext.error("Invalid action : " + action);
 			}
-
-			if ( gCachedExtras != null) {
-				Log.v(TAG, "sending cached extras");
-				sendExtras(gCachedExtras);
-				gCachedExtras = null;
-			}
-
-		} else if (UNREGISTER.equals(action)) {
-			instanceIdHelper.deleteGcmTokeInBackground(gSenderID);
-			Log.v(TAG, "UNREGISTER");
-			result = true;
-			callbackContext.success();
-		} else {
+		} catch (JSONException e) {
+			Log.e(TAG, "execute: Got JSON Exception " + e.getMessage());
 			result = false;
-			Log.e(TAG, "Invalid action : " + action);
-			callbackContext.error("Invalid action : " + action);
+			callbackContext.error(e.getMessage());
 		}
-
 		return result;
 	}
 

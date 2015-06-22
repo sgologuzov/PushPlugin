@@ -33,7 +33,24 @@ PushNotification.prototype.unregister = function(successCallback, errorCallback,
         return
     }
 
-     cordova.exec(successCallback, errorCallback, "PushPlugin", "unregister", [options]);
+    cordova.exec(successCallback, errorCallback, "PushPlugin", "unregister", [options]);
+};
+
+// Call this to subscribe for topic.
+PushNotification.prototype.subscribe = function(successCallback, errorCallback, gcmToken, topic) {
+    if (errorCallback == null) { errorCallback = function() {}}
+
+    if (typeof errorCallback != "function")  {
+        console.log("PushNotification.subscribe failure: failure parameter not a function");
+        return
+    }
+
+    if (typeof successCallback != "function") {
+        console.log("PushNotification.subscribe failure: success callback parameter must be a function");
+        return
+    }
+
+    cordova.exec(successCallback, errorCallback, "PushPlugin", "subscribe", [gcmToken, topic]);
 };
 
     // Call this if you want to show toast notification on WP8
