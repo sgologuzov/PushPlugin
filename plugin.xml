@@ -75,9 +75,10 @@
 
         <source-file src="src/android/libs/gcm.jar" target-dir="libs/" />
         <source-file src="src/android/libs/google-play-services.jar" target-dir="libs/" />
+        <source-file src="src/android/com/plugin/gms/gcm/logic/InstanceIdHelper.java" target-dir="src/com/plugin/gms/gcm/logic/" />
+        <source-file src="src/android/com/plugin/gms/gcm/logic/PubSubHelper.java" target-dir="src/com/plugin/gms/gcm/logic/" />
         <source-file src="src/android/com/plugin/gms/gcm/CordovaIDListenerService.java" target-dir="src/com/plugin/gms/gcm/" />
         <source-file src="src/android/com/plugin/gms/gcm/CordovaListenerService.java" target-dir="src/com/plugin/gms/gcm/" />
-        <source-file src="src/android/com/plugin/gms/gcm/InstanceIdHelper.java" target-dir="src/com/plugin/gms/gcm/" />
         <source-file src="src/android/com/plugin/gms/gcm/PushHandlerActivity.java" target-dir="src/com/plugin/gms/gcm/" />
         <source-file src="src/android/com/plugin/gms/gcm/PushPlugin.java" target-dir="src/com/plugin/gms/gcm/" />
         <source-file src="src/android/com/plugin/gms/gcm/RegistrationIntentService.java" target-dir="src/com/plugin/gms/gcm/" />
