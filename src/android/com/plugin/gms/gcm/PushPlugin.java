@@ -7,6 +7,8 @@ import android.util.Log;
 
 import com.plugin.gms.gcm.logic.InstanceIdHelper;
 import com.plugin.gms.gcm.logic.PubSubHelper;
+import com.plugin.gms.gcm.logic.UpstreamHelper;
+import com.plugin.gms.gcm.util.BundleJSONConverter;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
@@ -28,6 +30,7 @@ public class PushPlugin extends CordovaPlugin {
 	public static final String REGISTER = "register";
 	public static final String UNREGISTER = "unregister";
 	public static final String SUBSCRIBE = "subscribe";
+	public static final String SEND = "send";
 	public static final String EXIT = "exit";
 
 	private static CordovaWebView gWebView;
@@ -35,6 +38,10 @@ public class PushPlugin extends CordovaPlugin {
 	private static String gSenderID;
 	private static Bundle gCachedExtras = null;
     private static boolean gForeground = false;
+
+	private InstanceIdHelper instanceIdHelper;
+	private PubSubHelper pubSubHelper;
+	private UpstreamHelper upstreamHelper;
 
 	/**
 	 * Gets the application context from cordova's main activity.
@@ -49,8 +56,7 @@ public class PushPlugin extends CordovaPlugin {
 		boolean result = false;
 		try {
 			Log.v(TAG, "execute: action=" + action);
-			InstanceIdHelper instanceIdHelper = new InstanceIdHelper(getApplicationContext());
-			PubSubHelper pubSubHelper = new PubSubHelper(getApplicationContext());
+
 
 			if (REGISTER.equals(action)) {
 
@@ -84,8 +90,15 @@ public class PushPlugin extends CordovaPlugin {
 				String gcmToken = data.getString(0);
 				String topic = data.getString(1);
 				pubSubHelper.subscribeTopic(gSenderID, gcmToken, topic, null);
-				instanceIdHelper.deleteGcmTokeInBackground(gSenderID);
 				Log.v(TAG, "SUBSCRIBE");
+				result = true;
+				callbackContext.success();
+			} else if (SEND.equals(action)) {
+				String msgId = data.getString(0);
+				String ttl = data.getString(1);
+				Bundle extras = BundleJSONConverter.convertToBundle(data.getJSONObject(2));
+				upstreamHelper.sendMessage(gSenderID, msgId, ttl, extras);
+				Log.v(TAG, "SEND");
 				result = true;
 				callbackContext.success();
 			} else {
@@ -133,6 +146,9 @@ public class PushPlugin extends CordovaPlugin {
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
         gForeground = true;
+		instanceIdHelper = new InstanceIdHelper(getApplicationContext());
+		pubSubHelper = new PubSubHelper(getApplicationContext());
+		upstreamHelper = new UpstreamHelper(getApplicationContext());
     }
 
 	@Override
