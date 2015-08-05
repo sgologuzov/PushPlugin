@@ -80,8 +80,8 @@ public final class Message implements Serializable {
         private String restrictedPackageName;
 
         public Builder() {
-            this.data = new LinkedHashMap<>();
-            this.notificationParams = new LinkedHashMap<>();
+            this.data = new LinkedHashMap<String, String>();
+            this.notificationParams = new LinkedHashMap<String, String>();
         }
 
         /**
